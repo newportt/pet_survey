@@ -15,5 +15,4 @@ class PetSurveyView(FormView):
         return super(PetSurveyView, self).form_valid(form)
 
     def get_success_url(self):
-        # TODO
         return reverse('index')

@@ -1,5 +1,49 @@
 {% extends 'base.html' %}
 
+{% block head %}
+  <style>
+    .form-control-feedback { right: 15px; }
+    #id_birth_month_day { display: none; }
+  </style>
+  <script type="text/javascript">
+    function updateBreedDisplay (value, isChange) {
+      var $breed1 = $('#id_breed_1'),
+        $breed1Parent = $breed1.parents('.form-group'),
+        $breed2 = $('#id_breed_2'),
+        $breed2Parent = $breed2.parents('.form-group');
+
+      if (value === '0') {
+        $breed1.val('');
+        $breed1Parent.hide();
+        $breed2.val('');
+        $breed2Parent.hide();
+      } else if (value === '1') {
+        $breed1Parent.show();
+        $breed2.val('');
+        $breed2Parent.hide();
+      } else if (value === '2') {
+        $breed1Parent.show();
+        $breed2Parent.show();
+      }
+
+      if (isChange) {
+        $breed1Parent.removeClass('has-error has-success');
+        $breed1Parent.find('.form-control-feedback,.help-block').remove();
+        $breed2Parent.removeClass('has-error has-success');
+        $breed2Parent.find('.form-control-feedback,.help-block').remove();
+      }
+    }
+
+    $(function () {
+      updateBreedDisplay($('input[name="breed_count"]:checked').val());
+
+      $('input[name="breed_count"]').on('change', function () {
+        updateBreedDisplay($(this).val(), true);
+      });
+    });
+  </script>
+{% endblock %}
+
 {% block body %}
   <h1 class="page-header">Pet Survey</h1>
   <form class="form-horizontal well" method="post">
@@ -9,11 +53,37 @@
     {% endfor %}
 
     {% for field in form.visible_fields %}
-      <div class="form-group{% if field.errors %} has-error{% elif field.value %} has-success{% endif %}">
+      <div class="form-group{% if field.errors %} has-error{% elif field.value != None %} has-success{% endif %}"
+           {% if field.html_name == 'breed_1' or field.html_name == 'breed_2' %}style="display:none;"{% endif %}>
         <label for="{{ field.id_for_label }}" class="col-sm-2 control-label">{{ field.label }}</label>
         <div class="col-sm-10">
-          {{ field }}
-          {% if field.value or field.errors %}
+          {% if field.html_name == 'is_fixed' %}
+            <label class="radio-inline">
+              <input type="radio" name="{{ field.html_name }}" value="True"
+                     required {% if field.value == True %}checked{% endif %} /> Yes
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="{{ field.html_name }}" value="False"
+                     required {% if field.value == False %}checked{% endif %} /> No
+            </label>
+          {% elif field.html_name == 'breed_count' %}
+            <label class="radio-inline">
+              <input type="radio" name="{{ field.html_name }}" value="1"
+                     required {% if field.value == '1' %}checked{% endif %} /> Single breed
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="{{ field.html_name }}" value="2"
+                     required {% if field.value == '2' %}checked{% endif %} /> Mix of two breeds
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="{{ field.html_name }}" value="0"
+                     required {% if field.value == '0' %}checked{% endif %} /> Unknown mix
+            </label>
+          {% else %}
+            {{ field }}
+          {% endif %}
+
+          {% if field.value != None or field.errors %}
             <span class="glyphicon glyphicon-{{ field.errors|yesno:'remove,ok' }} form-control-feedback"></span>
           {% endif %}
         </div>
